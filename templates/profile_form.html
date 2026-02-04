@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}Profile · Matrimony{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+  <div class="card">
+    <h1>Profile Form</h1>
+    <p class="muted">Fill this like a simple “Google Form”-style profile.</p>
+
+    <form method="post" action="{{ url_for('profile.save_profile') }}" enctype="multipart/form-data" class="form profile-form">
+      <h2 class="section">Personal Info</h2>
+      <div class="row-2">
+        <label>Full Name
+          <input name="full_name" value="{{ profile.full_name if profile else '' }}" required />
+        </label>
+        <label>Age
+          <input type="number" name="age" min="18" max="80" value="{{ profile.age if profile else '' }}" required />
+        </label>
+      </div>
+
+      <div class="row-2">
+        <label>Gender
+          <select name="gender" required>
+            {% set g = profile.gender if profile else '' %}
+            <option value="">Select</option>
+            <option value="Male" {{ 'selected' if g=='Male' else '' }}>Male</option>
+            <option value="Female" {{ 'selected' if g=='Female' else '' }}>Female</option>
+            <option value="Other" {{ 'selected' if g=='Other' else '' }}>Other</option>
+          </select>
+        </label>
+        <label>Height (cm)
+          <input type="number" name="height_cm" min="120" max="220" value="{{ profile.height_cm if profile and profile.height_cm else '' }}" />
+        </label>
+      </div>
+
+      <div class="row-2">
+        <label>Marital Status
+          {% set ms = profile.marital_status if profile else '' %}
+          <select name="marital_status" required>
+            <option value="">Select</option>
+            {% for opt in ['Never Married','Divorced','Widowed','Separated'] %}
+              <option value="{{ opt }}" {{ 'selected' if ms==opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Location
+          <input name="location" placeholder="City" value="{{ profile.location if profile else '' }}" required />
+        </label>
+      </div>
+
+      <h2 class="section">Education & Job</h2>
+      <div class="row-2">
+        <label>Highest Education
+          {% set edu = profile.highest_education if profile else '' %}
+          <select name="highest_education" required>
+            <option value="">Select</option>
+            {% for opt in ['High School','Diploma','Bachelors','Masters','PhD'] %}
+              <option value="{{ opt }}" {{ 'selected' if edu==opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Occupation
+          <input name="occupation" placeholder="Software Engineer" value="{{ profile.occupation if profile else '' }}" required />
+        </label>
+      </div>
+
+      <label>Annual Income Range
+        {% set inc = profile.income_range if profile else '' %}
+        <select name="income_range" required>
+          <option value="">Select</option>
+          {% for opt in ['< 5 LPA','5-10 LPA','10-20 LPA','20+ LPA'] %}
+            <option value="{{ opt }}" {{ 'selected' if inc==opt else '' }}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <h2 class="section">Health & Lifestyle</h2>
+      <div class="row-2">
+        <label>Smoking
+          {% set sm = profile.smoking if profile else '' %}
+          <select name="smoking" required>
+            <option value="">Select</option>
+            {% for opt in ['Yes','No'] %}
+              <option value="{{ opt }}" {{ 'selected' if sm==opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Drinking
+          {% set dr = profile.drinking if profile else '' %}
+          <select name="drinking" required>
+            <option value="">Select</option>
+            {% for opt in ['Yes','No','Occasionally'] %}
+              <option value="{{ opt }}" {{ 'selected' if dr==opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <div class="row-2">
+        <label>Any medical conditions
+          {% set med = profile.medical_conditions if profile else '' %}
+          <select name="medical_conditions" required>
+            <option value="">Select</option>
+            {% for opt in ['Yes','No'] %}
+              <option value="{{ opt }}" {{ 'selected' if med==opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Fitness level
+          {% set fit = profile.fitness_level if profile else '' %}
+          <select name="fitness_level" required>
+            <option value="">Select</option>
+            {% for opt in ['Low','Medium','High'] %}
+              <option value="{{ opt }}" {{ 'selected' if fit==opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <h2 class="section">Preferences</h2>
+      <div class="row-2">
+        <label>Preferred Age Min
+          <input type="number" name="pref_age_min" min="18" max="80" value="{{ profile.pref_age_min if profile else 24 }}" required />
+        </label>
+        <label>Preferred Age Max
+          <input type="number" name="pref_age_max" min="18" max="80" value="{{ profile.pref_age_max if profile else 35 }}" required />
+        </label>
+      </div>
+
+      <div class="row-2">
+        <label>Preferred Location
+          <input name="pref_location" placeholder="City" value="{{ profile.pref_location if profile else '' }}" required />
+        </label>
+        <label>Preferred Education Level
+          {% set pedu = profile.pref_education_level if profile else '' %}
+          <select name="pref_education_level" required>
+            <option value="">Select</option>
+            {% for opt in ['High School','Diploma','Bachelors','Masters','PhD'] %}
+              <option value="{{ opt }}" {{ 'selected' if pedu==opt else '' }}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <h2 class="section">Profile Image</h2>
+      <label>Upload one image (JPEG/PNG)
+        <input type="file" name="profile_image" accept="image/jpeg,image/png" />
+      </label>
+
+      {% if profile and profile.image_filename %}
+        <div class="image-preview">
+          <img src="{{ url_for('static', filename='uploads/' + profile.image_filename) }}" alt="Profile image" />
+        </div>
+      {% endif %}
+
+      <button class="btn primary" type="submit">Save Profile</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Tips</h2>
+    <ul class="list">
+      <li>Matches are scored 0–100 using 5 weighted components.</li>
+      <li>Full profile visibility requires score ≥ 90%.</li>
+      <li>Send an interest to unlock messaging after acceptance.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

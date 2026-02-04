@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+
+# SQLite DB (optional – see note below)
+# database/matrimony.db
+
+# Uploads (keep images optional)
+static/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask
+instance/
+.env

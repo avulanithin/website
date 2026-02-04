@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Login · Matrimony{% endblock %}
+
+{% block content %}
+<div class="card narrow">
+  <h1>Login</h1>
+  <form method="post" action="{{ url_for('auth.login_post') }}" class="form">
+    <label>Email
+      <input type="email" name="email" placeholder="you@example.com" required />
+    </label>
+
+    <label>Password
+      <input type="password" name="password" placeholder="••••••••" required />
+    </label>
+
+    <button class="btn primary" type="submit">Login</button>
+
+    <p class="muted">New here? <a href="{{ url_for('auth.register_get') }}">Create an account</a>.</p>
+  </form>
+</div>
+{% endblock %}

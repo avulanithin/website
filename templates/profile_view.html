@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Profile · Matrimony{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="row space-between">
+    <div>
+      <h1>Profile</h1>
+      <p class="muted">Match score: <strong>{{ score }}%</strong></p>
+    </div>
+    <a class="btn" href="{{ url_for('match.dashboard') }}">Back</a>
+  </div>
+
+  {% if not can_view %}
+    <div class="notice warn">
+      Match score too low to view full profile. You need at least <strong>90%</strong>.
+    </div>
+
+    <h2 class="section">What you can see</h2>
+    <p class="muted">Name: {{ target.full_name }}</p>
+    <p class="muted">Location: {{ target.location }}</p>
+
+    {% if interest_status == 'pending' and interest_direction == 'incoming' %}
+      <div class="actions" style="margin-top: 12px;">
+        <form method="post" action="{{ url_for('interest.respond_interest', interest_id=interest_id, action='accepted') }}">
+          <button class="btn primary" type="submit">Accept interest</button>
+        </form>
+        <form method="post" action="{{ url_for('interest.respond_interest', interest_id=interest_id, action='rejected') }}">
+          <button class="btn" type="submit">Reject</button>
+        </form>
+      </div>
+    {% elif interest_status == 'pending' and interest_direction == 'outgoing' %}
+      <div style="margin-top: 12px;"><span class="muted">Interest pending</span></div>
+    {% elif interest_status == 'accepted' %}
+      <div style="margin-top: 12px;"><span class="muted">Interest accepted</span></div>
+    {% elif interest_status == 'rejected' %}
+      <div style="margin-top: 12px;"><span class="muted">Rejected</span></div>
+    {% elif not interest_status %}
+      <form method="post" action="{{ url_for('interest.send_interest', user_id=target.user_id) }}" style="margin-top: 12px;">
+        <button class="btn" type="submit">Send interest</button>
+      </form>
+    {% endif %}
+
+  {% else %}
+    <div class="grid-2">
+      <div>
+        {% if target.image_filename %}
+          <div class="image-preview">
+            <img src="{{ url_for('static', filename='uploads/' + target.image_filename) }}" alt="Profile image" />
+          </div>
+        {% endif %}
+
+        <h2 class="section">Details</h2>
+        {% if target.is_verified %}
+          <div style="margin: 8px 0;">
+            <span class="badge verified">Verified</span>
+          </div>
+        {% endif %}
+        <div class="kv">
+          <div><span>Full Name</span><strong>{{ target.full_name }}</strong></div>
+          <div><span>Age</span><strong>{{ target.age }}</strong></div>
+          <div><span>Gender</span><strong>{{ target.gender }}</strong></div>
+          <div><span>Height</span><strong>{{ target.height_cm or '—' }} cm</strong></div>
+          <div><span>Marital Status</span><strong>{{ target.marital_status }}</strong></div>
+          <div><span>Location</span><strong>{{ target.location }}</strong></div>
+          <div><span>Education</span><strong>{{ target.highest_education }}</strong></div>
+          <div><span>Occupation</span><strong>{{ target.occupation }}</strong></div>
+          <div><span>Income</span><strong>{{ target.income_range }}</strong></div>
+          <div><span>Smoking</span><strong>{{ target.smoking }}</strong></div>
+          <div><span>Drinking</span><strong>{{ target.drinking }}</strong></div>
+          <div><span>Medical</span><strong>{{ target.medical_conditions }}</strong></div>
+          <div><span>Fitness</span><strong>{{ target.fitness_level }}</strong></div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section">Actions</h2>
+        <div class="actions">
+          {% if messaging_unlocked %}
+            <a class="btn primary" href="{{ url_for('messages.view_messages', user_id=target.user_id) }}">Message</a>
+          {% elif interest_status == 'pending' and interest_direction == 'incoming' %}
+            <form method="post" action="{{ url_for('interest.respond_interest', interest_id=interest_id, action='accepted') }}">
+              <button class="btn primary" type="submit">Accept interest</button>
+            </form>
+            <form method="post" action="{{ url_for('interest.respond_interest', interest_id=interest_id, action='rejected') }}">
+              <button class="btn" type="submit">Reject</button>
+            </form>
+          {% elif interest_status == 'pending' and interest_direction == 'outgoing' %}
+            <span class="muted">Interest pending</span>
+          {% elif interest_status == 'rejected' %}
+            <span class="muted">Rejected</span>
+          {% elif not interest_status %}
+            <form method="post" action="{{ url_for('interest.send_interest', user_id=target.user_id) }}">
+              <button class="btn" type="submit">Send interest</button>
+            </form>
+          {% else %}
+            <span class="muted">Interest: {{ interest_status }}</span>
+          {% endif %}
+        </div>
+
+        <h2 class="section">Score breakdown</h2>
+        <div class="kv">
+          <div><span>Education</span><strong>{{ breakdown.education }}/20</strong></div>
+          <div><span>Job</span><strong>{{ breakdown.job }}/20</strong></div>
+          <div><span>Lifestyle</span><strong>{{ breakdown.lifestyle }}/20</strong></div>
+          <div><span>Health</span><strong>{{ breakdown.health }}/20</strong></div>
+          <div><span>Preference</span><strong>{{ breakdown.preference }}/20</strong></div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

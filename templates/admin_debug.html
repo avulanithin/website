@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Admin Debug · Matrimony{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Admin / Debug</h1>
+  <p class="muted">Raw DB values + match tool.</p>
+
+  <h2 class="section">Users (raw)</h2>
+  <div class="table">
+    <div class="trow thead">
+      <div>ID</div><div>Email</div><div>Created</div>
+    </div>
+    {% for u in users %}
+      <div class="trow">
+        <div>{{ u.id }}</div><div>{{ u.email }}</div><div class="muted">{{ u.created_at }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <h2 class="section">Profiles (raw)</h2>
+  <p class="muted">Tip: use these IDs in match tool below.</p>
+  <div class="table">
+    <div class="trow thead">
+      <div>ID</div><div>User</div><div>Name</div><div>Verified</div><div>Age</div><div>Gender</div><div>Location</div><div>Education</div><div>Occupation</div><div>Fitness</div><div>Action</div>
+    </div>
+    {% for p in profiles %}
+      <div class="trow">
+        <div>{{ p.id }}</div>
+        <div>{{ p.user_id }}</div>
+        <div>{{ p.full_name }}</div>
+        <div>
+          {% if p.is_verified %}
+            <span class="badge verified">Verified</span>
+          {% else %}
+            <span class="badge">Unverified</span>
+          {% endif %}
+        </div>
+        <div>{{ p.age }}</div>
+        <div>{{ p.gender }}</div>
+        <div>{{ p.location }}</div>
+        <div>{{ p.highest_education }}</div>
+        <div>{{ p.occupation }}</div>
+        <div>{{ p.fitness_level }}</div>
+        <div>
+          {% if p.is_verified %}
+            <form method="post" action="{{ url_for('admin.set_verified') }}">
+              <input type="hidden" name="profile_id" value="{{ p.id }}" />
+              <input type="hidden" name="value" value="0" />
+              <button class="btn" type="submit">Unverify</button>
+            </form>
+          {% else %}
+            <form method="post" action="{{ url_for('admin.set_verified') }}">
+              <input type="hidden" name="profile_id" value="{{ p.id }}" />
+              <input type="hidden" name="value" value="1" />
+              <button class="btn primary" type="submit">Verify</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <h2 class="section">Match score between any two profiles</h2>
+  <form method="get" action="{{ url_for('admin.debug_view') }}" class="form">
+    <div class="row-2">
+      <label>Profile A (id)
+        <input name="a" placeholder="1" value="{{ request.args.get('a','') }}" />
+      </label>
+      <label>Profile B (id)
+        <input name="b" placeholder="2" value="{{ request.args.get('b','') }}" />
+      </label>
+    </div>
+    <button class="btn primary" type="submit">Calculate</button>
+  </form>
+
+  {% if match_result %}
+    <div class="card inner" style="margin-top: 14px;">
+      <div class="row space-between">
+        <div>
+          <strong>{{ match_result.a.full_name }}</strong> ↔ <strong>{{ match_result.b.full_name }}</strong>
+        </div>
+        <div class="pill {{ 'good' if match_result.score >= 90 else 'warn' }}">{{ match_result.score }}%</div>
+      </div>
+      <div class="breakdown" style="margin-top: 10px;">
+        <div><span>Education</span><strong>{{ match_result.breakdown.education }}/20</strong></div>
+        <div><span>Job</span><strong>{{ match_result.breakdown.job }}/20</strong></div>
+        <div><span>Lifestyle</span><strong>{{ match_result.breakdown.lifestyle }}/20</strong></div>
+        <div><span>Health</span><strong>{{ match_result.breakdown.health }}/20</strong></div>
+        <div><span>Preference</span><strong>{{ match_result.breakdown.preference }}/20</strong></div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

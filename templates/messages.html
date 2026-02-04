@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Messages · Matrimony{% endblock %}
+
+{% block content %}
+<div class="card messages-card">
+  <div class="row space-between">
+    <div>
+      <h1>Messages</h1>
+      <p class="muted">Chat with {{ other_profile.full_name }} ({{ other_profile.location }})</p>
+    </div>
+    <a class="btn" href="{{ url_for('match.dashboard') }}">Back to dashboard</a>
+  </div>
+
+  <section class="chat-container dm-thread" aria-label="Chat messages">
+    {% if not messages %}
+      <p class="muted">No messages yet.</p>
+    {% else %}
+      {% for m in messages %}
+        {% set mine = (m.from_user_id == session['user_id']) %}
+        <div class="message {{ 'sent' if mine else 'received' }}">
+          {% if m.body %}
+            <div class="message-body">{{ m.body }}</div>
+          {% endif %}
+
+          {% if m.attachment_filename %}
+            <a class="message-attachment" href="{{ url_for('static', filename='uploads/messages/' + m.attachment_filename) }}" target="_blank" rel="noopener">
+              <img src="{{ url_for('static', filename='uploads/messages/' + m.attachment_filename) }}" alt="Attachment" loading="lazy" />
+            </a>
+          {% endif %}
+
+          <div class="message-meta">{{ m.created_at }}</div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </section>
+
+  <form class="chat-form dm-composer" method="post" action="{{ url_for('messages.send_message', user_id=other_user.id) }}" enctype="multipart/form-data">
+    <div class="composer-row">
+      <button class="icon-btn" type="button" data-emoji-toggle aria-label="Emoji">
+        😊
+      </button>
+
+      <label class="icon-btn" aria-label="Attachment">
+        📎
+        <input class="file-input" type="file" name="attachment" accept="image/jpeg,image/png,image/webp" />
+      </label>
+
+      <input class="input" type="text" name="body" maxlength="2000" placeholder="Message" autocomplete="off" />
+      <button class="icon-btn primary" type="submit" aria-label="Send">➤</button>
+    </div>
+
+    <div class="composer-preview" aria-live="polite" hidden>
+      <div class="preview-inner">
+        <img class="preview-img" alt="Attachment preview" />
+        <button class="btn" type="button" data-preview-clear>Remove</button>
+      </div>
+    </div>
+
+    <div class="emoji-popover" hidden>
+      <emoji-picker class="emoji-picker"></emoji-picker>
+    </div>
+  </form>
+</div>
+{% endblock %}
