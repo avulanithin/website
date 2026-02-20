@@ -22,6 +22,9 @@ class Config:
     DB_PATH = os.environ.get("DB_PATH", str(BASE_DIR / "database" / "matrimony.db"))
 
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "static" / "uploads"))
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
+    # Mobile photos (especially iOS) can exceed 5MB easily.
+    # Keep a reasonable default and allow override via env.
+    MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 15 * 1024 * 1024))  # 15MB
 
-    ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png"}
+    # Images: include webp; include heic/heif to support iOS uploads (converted server-side if Pillow is installed).
+    ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "heic", "heif"}

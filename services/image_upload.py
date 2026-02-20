@@ -15,6 +15,49 @@ def allowed_file(filename: str, allowed_exts: Iterable[str]) -> bool:
     return ext in {e.lower() for e in allowed_exts}
 
 
+_MIMETYPE_TO_EXT = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/heic": "heic",
+    "image/heif": "heif",
+}
+
+
+def _guess_ext(file: FileStorage) -> Optional[str]:
+    if file.filename and "." in file.filename:
+        return secure_filename(file.filename).rsplit(".", 1)[1].lower()
+    mt = (file.mimetype or "").lower().split(";")[0].strip()
+    return _MIMETYPE_TO_EXT.get(mt)
+
+
+def _require_image(file: FileStorage) -> None:
+    mt = (file.mimetype or "").lower()
+    if not mt.startswith("image/"):
+        raise ValueError("Invalid file. Please upload an image.")
+
+
+def _convert_heic_to_jpeg(file: FileStorage, dest: Path) -> None:
+    # Optional dependency: pillow + pillow-heif
+    try:
+        from PIL import Image, ImageOps  # type: ignore
+        import pillow_heif  # type: ignore
+
+        pillow_heif.register_heif_opener()
+        file.stream.seek(0)
+        img = Image.open(file.stream)
+        img = ImageOps.exif_transpose(img)
+        img = img.convert("RGB")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        img.save(dest, format="JPEG", quality=88, optimize=True)
+        file.stream.seek(0)
+    except Exception as e:
+        raise ValueError(
+            "This photo format (HEIC/HEIF) isn't supported on the server yet. "
+            "Please upload a JPG/PNG/WebP image (or change your phone camera setting to 'Most Compatible')."
+        ) from e
+
+
 def save_profile_image(
     file: Optional[FileStorage],
     upload_folder: str,
@@ -32,18 +75,25 @@ def save_profile_image(
     if not file or not file.filename:
         return None
 
-    original = secure_filename(file.filename)
-    if not allowed_file(original, allowed_exts):
-        raise ValueError("Invalid image type. Only JPG/JPEG/PNG allowed.")
+    _require_image(file)
 
-    ext = original.rsplit(".", 1)[1].lower()
+    ext = _guess_ext(file)
+    if not ext or ext.lower() not in {e.lower() for e in allowed_exts}:
+        raise ValueError("Invalid image type. Please upload JPG/JPEG/PNG/WebP (HEIC supported if server can convert).")
+
     token = secrets.token_hex(8)
-    stored_name = f"profile_{token}.{ext}"
+    # Convert HEIC/HEIF to JPEG for widest browser support.
+    stored_ext = "jpg" if ext in {"heic", "heif"} else ext
+    stored_name = f"profile_{token}.{stored_ext}"
 
     folder = Path(upload_folder)
     folder.mkdir(parents=True, exist_ok=True)
     dest = folder / stored_name
-    file.save(dest)
+
+    if ext in {"heic", "heif"}:
+        _convert_heic_to_jpeg(file, dest)
+    else:
+        file.save(dest)
 
     return stored_name
 

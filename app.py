@@ -4,6 +4,7 @@ import os
 
 from flask import Flask
 from flask_cors import CORS   # ✅ ADD THIS
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from config import Config
 from database import models
@@ -64,6 +65,14 @@ def create_app() -> Flask:
         resp.headers.setdefault("X-Content-Type-Options", "nosniff")
         resp.headers.setdefault("X-Frame-Options", "DENY")
         return resp
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_request_too_large(e):
+        from flask import flash, redirect, request, url_for
+
+        max_mb = int(app.config.get("MAX_CONTENT_LENGTH", 0) or 0) // (1024 * 1024)
+        flash(f"Upload too large. Please choose a smaller image (max {max_mb}MB).", "error")
+        return redirect(request.referrer or url_for("profile.edit_profile"))
 
     # ✅ HEALTH CHECK ENDPOINT (VERY IMPORTANT)
     @app.route("/health")

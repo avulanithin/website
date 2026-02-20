@@ -143,8 +143,8 @@
       </div>
 
       <h2 class="section">Profile Image</h2>
-      <label>Upload one image (JPEG/PNG)
-        <input type="file" name="profile_image" accept="image/jpeg,image/png" />
+      <label>Upload one image
+        <input type="file" name="profile_image" accept="image/*" />
       </label>
 
       {% if profile and profile.image_filename %}
